@@ -2,10 +2,19 @@ import os
 import re
 
 
-def windows_natural_sort_key(s):
-    """生成适用于Windows自然排序的键（处理数字和字母混合的文件名）"""
-    return [int(text) if text.isdigit() else text.lower()
-            for text in re.split(r'(\d+)', s)]
+def natural_sort_key(s):
+    """实现特定排序规则：数字按自然���序，但带前导零的数字排在相同值的数字之前"""
+    def convert(text):
+        if text.isdigit():
+            num_val = int(text)
+            # 如果是以0开头的数字，返回一个特殊的元组使其排在普通数字之前
+            if text.startswith('0') and len(text) > 1:
+                return (num_val - 0.5, text)
+            return (num_val, text)
+        return text.lower()
+
+    return [convert(p) for p in re.split('([0-9]+)', s)]
+
 
 
 def rename_images_with_names(names_file, image_folder):
@@ -36,7 +45,7 @@ def rename_images_with_names(names_file, image_folder):
             return
 
         # 按Windows自然排序规则对图片文件排序
-        image_files.sort(key=windows_natural_sort_key)
+        image_files.sort(key=natural_sort_key)
         print(f"已按Windows自然排序规则排列图片文件，共 {len(image_files)} 个")
 
         # 重命名逻辑（按排序后的顺序匹配名字和图片）
